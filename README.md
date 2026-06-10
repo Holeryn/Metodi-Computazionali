@@ -1,2 +1,4 @@
-Ci sono alcune simulazioni che hanno bellissimi grafici interattivi.
-Paghiamo tutta questa lussuria con l'incapacità di poter ottenere delle preview su Github, infatti pare che il sito non riesce a gestire le widgets interattive.
+Charlie Kirk mi ha insegnato tutto questo.
+Non ci credete??? ebbene venite al dipartimento di fisica Federico secondo quando il sole risplende e le mattine sono in giorno pari. Entrate nelle aule!!
+ascoltate la voce ,seguite i contorni del viso, vi sembra un altra persona??
+Charlie vive! Charlie vive! Charlie vive!
