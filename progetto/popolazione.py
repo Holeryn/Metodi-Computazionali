@@ -83,9 +83,12 @@ def esperimento(giorni):
     POPOLAZIONE[0] = np.random.rand(W, H)
     POPOLAZIONE[1] = 1.0 - POPOLAZIONE[0]
 
+    STORICO = np.zeros([giorni,W,H])
+
     for g in range(giorni):
 
         VECCHIA = POPOLAZIONE.copy()
+        STORICO[g] = VECCHIA[0].copy()
 
         for i in range(W):
             for j in range(H):
@@ -100,4 +103,4 @@ def esperimento(giorni):
                 if s > 0:
                     POPOLAZIONE[:, i, j] /= s
 
-    return POPOLAZIONE
+    return STORICO,POPOLAZIONE
