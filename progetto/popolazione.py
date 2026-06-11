@@ -1,3 +1,4 @@
+
 import numpy as np
 import math as mh
 
@@ -31,16 +32,17 @@ def Ai(i, j):
     )
 
 
+
 def V(giorno):
-    if giorno <= 23:
+    if giorno <= 113: #23
         return 1
-    elif giorno <= 115:
+    elif giorno <= 207: #115
         return 0.85
-    elif giorno <= 126:
+    elif giorno <= 218: #126
         return 0.009 * giorno - 0.185
-    elif giorno <= 156:
+    elif giorno <= 248: #156
         return 0.002 * giorno + 0.688
-    elif giorno <= 186:
+    elif giorno <= 278: #186
         return 0.007 * giorno - 0.092
     else:
         return 1.2
@@ -88,7 +90,6 @@ def esperimento(giorni):
     for g in range(giorni):
 
         VECCHIA = POPOLAZIONE.copy()
-        STORICO[g] = VECCHIA[0].copy()
 
         for i in range(W):
             for j in range(H):
@@ -102,5 +103,6 @@ def esperimento(giorni):
 
                 if s > 0:
                     POPOLAZIONE[:, i, j] /= s
+        STORICO[g] = VECCHIA[0].copy()
 
     return STORICO,POPOLAZIONE

@@ -36,16 +36,21 @@ def Setup(POPOLAZIONE, STORICO, giorno):
         return VIRUS
 
     # Regola 1: pianta virus al giorno Dv
-    VIRUS[::40, ::40]       = 1
-    GIORNO_MASK[::40, ::40] = Dv
-    MASK[::40, ::40]        = 1
+    indici = np.random.choice(VIRUS.size, size=100, replace=False)
 
-    for i in range(Dv + 1, giorno - 2):
+    VIRUS.flat[indici] = 1
+    GIORNO_MASK.flat[indici] = Dv
+    MASK.flat[indici]        = 1
+
+    for i in range(Dv + 1, giorno):
 
         # Regola 2: propaga virus
         X_i   = Xi(VIRUS, VIRUS_MASK)
-        N     = Vp * X_i * STORICO[i]
+
+        N     = Vp * X_i * STORICO[i]     
         VIRUS = VIRUS + N
+
+        print(N)
 
         # Segna giorno di nascita per le celle appena infettate
         GIORNO_MASK = np.where((VIRUS != 0) & (MASK == 0), i, GIORNO_MASK)
