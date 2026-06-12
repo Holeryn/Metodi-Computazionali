@@ -37,7 +37,7 @@ def Xi(VIRUS):
 
 def setup_virus(giorni_totali, STORICO):
     VIRUS_LAYERS  = np.zeros((giorni_totali, 401, 401))
-    N_LAYERS      = np.zeros((giorni_totali, 401, 401))  # N per cella per giorno
+    N_LAYERS      = np.zeros((giorni_totali,401,401))  # N per cella per giorno
     
     indici = np.random.choice(401*401, size=100, replace=False)
     VIRUS_LAYERS[Dv].flat[indici] = 1
