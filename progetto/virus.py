@@ -11,19 +11,25 @@ Vm = 950
 Vs = 5
 
 def Xi(VECCHIA, VIRUS_MASK):
-    V  = VECCHIA
-    VM = VIRUS_MASK
+    # Applichiamo la maschera IMMEDIATAMENTE. 
+    # Dove VIRUS_MASK è 0, il valore in V_masked diventa 0.
+    V_masked = VECCHIA * VIRUS_MASK
 
+    # Ora facciamo i roll solo sulla matrice già filtrata
     return (
-        np.roll(V,  1, axis=0) * np.roll(VM,  1, axis=0) +
-        np.roll(V, -1, axis=0) * np.roll(VM, -1, axis=0) +
-        np.roll(V,  1, axis=1) * np.roll(VM,  1, axis=1) +
-        np.roll(V, -1, axis=1) * np.roll(VM, -1, axis=1) +
-        np.roll(np.roll(V,  1, axis=0),  1, axis=1) * np.roll(np.roll(VM,  1, axis=0),  1, axis=1) +
-        np.roll(np.roll(V,  1, axis=0), -1, axis=1) * np.roll(np.roll(VM,  1, axis=0), -1, axis=1) +
-        np.roll(np.roll(V, -1, axis=0),  1, axis=1) * np.roll(np.roll(VM, -1, axis=0),  1, axis=1) +
-        np.roll(np.roll(V, -1, axis=0), -1, axis=1) * np.roll(np.roll(VM, -1, axis=0), -1, axis=1)
+        # 4 Primi vicini (Cardinali)
+        np.roll(V_masked,  1, axis=0) +
+        np.roll(V_masked, -1, axis=0) +
+        np.roll(V_masked,  1, axis=1) +
+        np.roll(V_masked, -1, axis=1) +
+        
+        # 4 Vicini diagonali (Rimuovili se volevi SOLO i primi 4)
+        np.roll(np.roll(V_masked,  1, axis=0),  1, axis=1) +
+        np.roll(np.roll(V_masked,  1, axis=0), -1, axis=1) +
+        np.roll(np.roll(V_masked, -1, axis=0),  1, axis=1) +
+        np.roll(np.roll(V_masked, -1, axis=0), -1, axis=1)
     )
+
 
 def Setup(POPOLAZIONE, STORICO, giorno):
     VIRUS       = np.zeros((401, 401))
@@ -72,5 +78,6 @@ def Setup(POPOLAZIONE, STORICO, giorno):
         POP_MASK = np.where(STORICO[i] == 0, POP_MASK - 1, 3)
         POP_MASK = np.clip(POP_MASK, 0, 3)
         VIRUS    = np.where(POP_MASK == 0, 0, VIRUS)
-
+        VIRUS    = np.where(VIRUS > Vm, Vm,VIRUS)
+        
     return VIRUS

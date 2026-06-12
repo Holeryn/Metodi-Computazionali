@@ -78,12 +78,14 @@ def G(i, j, giorno):
         return D
 
 
+POPOLAZIONE = np.zeros([2,W,H])
+
+POPOLAZIONE[0] = np.random.rand(W,H)
+POPOLAZIONE[1] = 1 - POPOLAZIONE[0]
+
 def esperimento(giorni):
 
     global VECCHIA
-
-    POPOLAZIONE[0] = np.random.rand(W, H)
-    POPOLAZIONE[1] = 1.0 - POPOLAZIONE[0]
 
     STORICO = np.zeros([giorni,W,H])
 
