@@ -1,6 +1,8 @@
 import numpy as np
 import math as mh
 import matplotlib.pyplot as plt
+import random
+from scipy.special import gamma
 
 s = 0.341
 Vp = 0.23
@@ -10,74 +12,61 @@ Dv = 52
 Vm = 950
 Vs = 5
 
-def Xi(VECCHIA, VIRUS_MASK):
-    # Applichiamo la maschera IMMEDIATAMENTE. 
-    # Dove VIRUS_MASK è 0, il valore in V_masked diventa 0.
-    V_masked = VECCHIA * VIRUS_MASK
+# Parametri P(x)
+alpha = 4.938
+beta = 0.2627
+
+def Xi(VIRUS):
+    V = VIRUS
 
     # Ora facciamo i roll solo sulla matrice già filtrata
     return (
         # 4 Primi vicini (Cardinali)
-        np.roll(V_masked,  1, axis=0) +
-        np.roll(V_masked, -1, axis=0) +
-        np.roll(V_masked,  1, axis=1) +
-        np.roll(V_masked, -1, axis=1) +
+        np.roll(V,  1, axis=0) +
+        np.roll(V, -1, axis=0) +
+        np.roll(V,  1, axis=1) +
+        np.roll(V, -1, axis=1) +
         
         # 4 Vicini diagonali (Rimuovili se volevi SOLO i primi 4)
-        np.roll(np.roll(V_masked,  1, axis=0),  1, axis=1) +
-        np.roll(np.roll(V_masked,  1, axis=0), -1, axis=1) +
-        np.roll(np.roll(V_masked, -1, axis=0),  1, axis=1) +
-        np.roll(np.roll(V_masked, -1, axis=0), -1, axis=1)
+        np.roll(np.roll(V,  1, axis=0),  1, axis=1) +
+        np.roll(np.roll(V,  1, axis=0), -1, axis=1) +
+        np.roll(np.roll(V, -1, axis=0),  1, axis=1) +
+        np.roll(np.roll(V, -1, axis=0), -1, axis=1)
     )
 
 
-def Setup(POPOLAZIONE, STORICO, giorno):
-    VIRUS       = np.zeros((401, 401))
-    VIRUS_MASK  = np.zeros((401, 401))
-    GIORNO_MASK = np.full((401, 401), -999)  # -999 = mai infettato
-    MASK        = np.zeros((401, 401))
-    POP_MASK    = np.full((401, 401), 3)     # contatore 3 giorni popolazione
+def setup_virus(giorni_totali, STORICO):
+    VIRUS_LAYERS  = np.zeros((giorni_totali, 401, 401))
+    N_LAYERS      = np.zeros((giorni_totali, 401, 401))  # N per cella per giorno
+    
+    indici = np.random.choice(401*401, size=100, replace=False)
+    VIRUS_LAYERS[Dv].flat[indici] = 1
+    
 
-    if giorno < Dv:
-        return VIRUS
+    for i in range(Dv + 1, giorni_totali):
+        if i % 5 == 0:
+            indici_nuovi = np.random.choice(401*401, size=Vs, replace=False)
+            VIRUS_LAYERS[i].flat[indici_nuovi] = 1
 
-    # Regola 1: pianta virus al giorno Dv
-    indici = np.random.choice(VIRUS.size, size=100, replace=False)
-
-    VIRUS.flat[indici] = 1
-    GIORNO_MASK.flat[indici] = Dv
-    MASK.flat[indici]        = 1
-
-    for i in range(Dv + 1, giorno):
-
-        # Regola 2: propaga virus
-        X_i   = Xi(VIRUS, VIRUS_MASK)
-
-        N     = Vp * X_i * STORICO[i]     
-        VIRUS = VIRUS + N
-
-        print(N)
-
-        # Segna giorno di nascita per le celle appena infettate
-        GIORNO_MASK = np.where((VIRUS != 0) & (MASK == 0), i, GIORNO_MASK)
-        MASK        = np.where((VIRUS != 0) & (MASK == 0), 1, MASK)
-
-        # Regola 3: calcola quanti giorni è vivo il virus in ogni cella
-        giorni_vita = i - GIORNO_MASK
-
-        # Infettivo solo nella finestra (Ve, Ve+Vl]
-        VIRUS_MASK = np.where(
-            (giorni_vita > Ve) & (giorni_vita <= Ve + Vl),
-            1, 0
-        )
-
-        # Rimuovi virus solo quando ha superato tutta la sua vita (Ve + Vl)
-        VIRUS = np.where(giorni_vita > Ve + Vl, 0, VIRUS)
-
-        # Regola 4: se popolazione = 0 per 3 giorni consecutivi, azzera virus
-        POP_MASK = np.where(STORICO[i] == 0, POP_MASK - 1, 3)
-        POP_MASK = np.clip(POP_MASK, 0, 3)
-        VIRUS    = np.where(POP_MASK == 0, 0, VIRUS)
-        VIRUS    = np.where(VIRUS > Vm, Vm,VIRUS)
+        eta           = i - np.arange(i)[:, np.newaxis, np.newaxis]
+        infettivi_mask = (eta > Ve) & (eta <= Ve + Vl)
+        VIRUS_INFETTI  = (VIRUS_LAYERS[:i] * infettivi_mask).sum(axis=0)
+        Xi_val         = Xi(VIRUS_INFETTI)
         
-    return VIRUS
+        N                = Vp * Xi_val * STORICO[i]  # (401,401)
+        N_LAYERS[i]      = N                          # salva per cella
+        VIRUS_LAYERS[i] += N
+
+        totale = VIRUS_LAYERS[:i+1].sum(axis=0)
+        eccesso_mask = totale > Vm
+        if eccesso_mask.any():
+            scala = np.where(eccesso_mask, Vm / totale, 1.0)
+            VIRUS_LAYERS[:i+1] *= scala[np.newaxis, :, :]
+
+        eta_full = i - np.arange(i+1)[:, np.newaxis, np.newaxis]
+        VIRUS_LAYERS[:i+1] = np.where(eta_full > Ve + Vl, 0, VIRUS_LAYERS[:i+1])
+
+    return N_LAYERS, VIRUS_LAYERS
+
+def P(x):
+    return (beta**alpha)/gamma(alpha) * x**(alpha-1) * np.exp(-beta*x)

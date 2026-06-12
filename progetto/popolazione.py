@@ -6,9 +6,6 @@ A0 = 3
 W = 401
 H = 401
 
-POPOLAZIONE = np.zeros((2, W, H))
-VECCHIA = np.zeros((2, W, H))
-
 B = np.array([[1, 1],
               [0, 0]])
 
@@ -19,20 +16,20 @@ S = np.array([[1, 0],
               [0, 1]])
 
 
-def Ai(i, j):
+def Ai(POPOLAZIONE):
+    G = POPOLAZIONE[0]
     return (
-        VECCHIA[0, (i+1) % W, j] +
-        VECCHIA[0, (i-1) % W, j] +
-        VECCHIA[0, i, (j+1) % H] +
-        VECCHIA[0, i, (j-1) % H] +
-        VECCHIA[0, (i+1) % W, (j+1) % H] +
-        VECCHIA[0, (i+1) % W, (j-1) % H] +
-        VECCHIA[0, (i-1) % W, (j+1) % H] +
-        VECCHIA[0, (i-1) % W, (j-1) % H]
+        np.roll(G, -1, axis=0) +   # i+1, j
+        np.roll(G, +1, axis=0) +   # i-1, j
+        np.roll(G, -1, axis=1) +   # i, j+1
+        np.roll(G, +1, axis=1) +   # i, j-1
+        np.roll(np.roll(G, -1, axis=0), -1, axis=1) +  # i+1, j+1
+        np.roll(np.roll(G, -1, axis=0), +1, axis=1) +  # i+1, j-1
+        np.roll(np.roll(G, +1, axis=0), -1, axis=1) +  # i-1, j+1
+        np.roll(np.roll(G, +1, axis=0), +1, axis=1)    # i-1, j-1
     )
 
-
-
+    
 def V(giorno):
     if giorno <= 113: #23
         return 1
@@ -48,63 +45,44 @@ def V(giorno):
         return 1.2
 
 
-def G(i, j, giorno):
-
-    A = Ai(i, j)
+def G(POPOLAZIONE, giorno):
     v = V(giorno)
+    A = Ai(POPOLAZIONE)
+    A_ = A[:, :, np.newaxis, np.newaxis]
 
-    if A <= A0 - 2*v:
-        return D
+    cond1 = A_ <= A0 - 2*v
+    cond2 = (A_ > A0 - 2*v) & (A_ <= A0 - v)
+    cond3 = (A_ > A0 - v)   & (A_ <= A0)
+    cond4 = (A_ > A0)       & (A_ <= A0 + v)
+    cond5 = A_ >= A0 + v
 
-    elif A <= A0 - v:
-        return (
-            (mh.sqrt(2)+1)*(A0-v-A)*D +
-            (A-A0+2*v)*S
-        )
-
-    elif A <= A0:
-        return (
-            (mh.sqrt(2)+1)*(A0-A)*S +
-            (A-A0+v)*B
-        )
-
-    elif A < A0 + v:
-        return (
-            (mh.sqrt(2)+1)*(A0+v-A)*B +
-            (A-A0)*D
-        )
-
-    else:
-        return D
-
-
-POPOLAZIONE = np.zeros([2,W,H])
-
-POPOLAZIONE[0] = np.random.rand(W,H)
-POPOLAZIONE[1] = 1 - POPOLAZIONE[0]
+    
+    Gi = np.where(cond1, D, np.zeros([W,H,2,2])) 
+    Gi = np.where(cond2, (mh.sqrt(2)+1)*(A0 - v - A_)*D + (A_ - A0 + 2*v)*S, Gi) 
+    Gi = np.where(cond3, (mh.sqrt(2)+1)*(A0 - A_)*S + (A_ - A0 + v)*B, Gi) 
+    Gi = np.where(cond4, (mh.sqrt(2)+1)*(A0 + v - A_)*B + (A_ - A0)*D, Gi)
+    Gi = np.where(cond5, D, Gi)
+    
+    return Gi
 
 def esperimento(giorni):
-
-    global VECCHIA
-
+    POPOLAZIONE = np.zeros([2,W,H])
+    POPOLAZIONE[0] = np.random.rand(W,H)
+    POPOLAZIONE[1] = np.sqrt(1 - POPOLAZIONE[0]**2)
+    
     STORICO = np.zeros([giorni,W,H])
 
-    for g in range(giorni):
+    STORICO[0] = POPOLAZIONE[0]
+    for i in range(1,giorni):
+        Gi = G(POPOLAZIONE,i)
+        P0 = Gi[:,:,0,0]*POPOLAZIONE[0] + Gi[:,:,0,1]*POPOLAZIONE[1]
+        P1 = Gi[:,:,1,0]*POPOLAZIONE[0] + Gi[:,:,1,1]*POPOLAZIONE[1]
+    
+        N = np.sqrt(P0**2 + P1**2)
+        POPOLAZIONE[0] = P0/N
+        POPOLAZIONE[1] = P1/N
 
-        VECCHIA = POPOLAZIONE.copy()
+        STORICO[i] = POPOLAZIONE[0] 
 
-        for i in range(W):
-            for j in range(H):
-
-                U = G(i, j, g)
-
-                POPOLAZIONE[:, i, j] = U @ VECCHIA[:, i, j]
-
-                # normalizzazione probabilistica
-                s = mh.sqrt(POPOLAZIONE[0, i, j]**2 + POPOLAZIONE[1, i, j]**2)
-
-                if s > 0:
-                    POPOLAZIONE[:, i, j] /= s
-        STORICO[g] = VECCHIA[0].copy()
 
     return STORICO,POPOLAZIONE
