@@ -3,7 +3,7 @@ import math as mh
 import matplotlib.pyplot as plt
 import random
 from scipy.special import gamma
-
+from scipy.stats import gamma as gamma_dist 
 s = 0.341
 Vp = 0.23
 Ve = 3
@@ -45,7 +45,7 @@ def setup_virus(giorni_totali, STORICO):
 
     for i in range(Dv + 1, giorni_totali):
         if i % 5 == 0:
-            indici_nuovi = np.random.choice(401*401, size=Vs, replace=False)
+            indici_nuovi = np.random.choice(401*401, size=1, replace=False)
             VIRUS_LAYERS[i].flat[indici_nuovi] = 1
 
         eta           = i - np.arange(i)[:, np.newaxis, np.newaxis]
@@ -69,4 +69,5 @@ def setup_virus(giorni_totali, STORICO):
     return N_LAYERS, VIRUS_LAYERS
 
 def P(x):
-    return (beta**alpha)/gamma(alpha) * x**(alpha-1) * np.exp(-beta*x)
+    from scipy.stats import gamma as gamma_dist
+
