@@ -31,16 +31,38 @@ def Ai(POPOLAZIONE):
 
     
 def V(giorno):
-    if giorno <= 113: #23
+    if giorno <= 90:
         return 1
-    elif giorno <= 207: #115
+    elif giorno <= 106:
+        return 0.9
+    elif giorno <= 113:
         return 0.85
-    elif giorno <= 218: #126
-        return 0.009 * giorno - 0.185
-    elif giorno <= 248: #156
-        return 0.002 * giorno + 0.688
-    elif giorno <= 278: #186
-        return 0.007 * giorno - 0.092
+    elif giorno <= 120:
+        return 0.75
+    elif giorno <= 134:
+        return 0.88
+    elif giorno <= 141:
+        return 0.86
+    elif giorno <= 155:
+        return 0.85
+    elif giorno <= 180:
+        return 0.86
+    elif giorno <= 190:
+        return 0.85
+    elif giorno <= 211:
+        return 0.8
+    elif giorno <= 230:
+        return 0.75
+    elif giorno <= 252:
+        return 1
+    elif giorno <= 259:
+        return 0.80
+    elif giorno <= 280:
+        return 0.98
+    elif giorno <= 308:
+        return 1
+    elif giorno <= 322:
+        return 1.15
     else:
         return 1.2
 
