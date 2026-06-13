@@ -56,13 +56,13 @@ def V(giorno):
     elif giorno <= 252:
         return 1
     elif giorno <= 259:
-        return 0.80
-    elif giorno <= 280:
-        return 0.98
-    elif giorno <= 308:
         return 1
-    elif giorno <= 322:
-        return 1.15
+    elif giorno <= 267:
+        return 1.1
+    elif giorno <= 308:
+        return 1.2
+    elif giorno <= 312:
+        return 1.2
     else:
         return 1.2
 

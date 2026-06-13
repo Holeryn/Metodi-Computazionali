@@ -42,6 +42,7 @@ def setup_virus(giorni_totali, STORICO):
     indici = np.random.choice(401*401, size=100, replace=False)
     VIRUS_LAYERS[Dv].flat[indici] = 1
     
+    POP_ZERO = np.zeros((401, 401), dtype=int)
 
     for i in range(Dv + 1, giorni_totali):
         if i % Vs == 0:
@@ -65,6 +66,11 @@ def setup_virus(giorni_totali, STORICO):
 
         eta_full = i - np.arange(i+1)[:, np.newaxis, np.newaxis]
         VIRUS_LAYERS[:i+1] = np.where(eta_full > Ve + Vl, 0, VIRUS_LAYERS[:i+1])
+
+        POP_ZERO = np.where(STORICO[i] == 0, POP_ZERO + 1, 0)
+        maschera_morte = POP_ZERO >= 3
+        VIRUS_LAYERS[i][maschera_morte] = 0
+        N[maschera_morte] = 0
 
     return N_LAYERS, VIRUS_LAYERS
 
