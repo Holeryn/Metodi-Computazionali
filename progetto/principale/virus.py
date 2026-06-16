@@ -1,33 +1,29 @@
 import numpy as np
 import math as mh
 import matplotlib.pyplot as plt
-import random
 from scipy.special import gamma
+
 
 s = 0.341
 Vp = 0.23
 Ve = 3
 Vl = 13
-Dv = 40
+Dv = 52
 Vm = 950
 Vs = 5
 
-# Parametri P(x)
 alpha = 4.938
 beta = 0.2627
 
 def Xi(VIRUS):
     V = VIRUS
 
-    # Ora facciamo i roll solo sulla matrice già filtrata
+# Faccio la somma dei primi vicini
     return (
-        # 4 Primi vicini (Cardinali)
         np.roll(V,  1, axis=0) +
         np.roll(V, -1, axis=0) +
         np.roll(V,  1, axis=1) +
         np.roll(V, -1, axis=1) +
-        
-        # 4 Vicini diagonali (Rimuovili se volevi SOLO i primi 4)
         np.roll(np.roll(V,  1, axis=0),  1, axis=1) +
         np.roll(np.roll(V,  1, axis=0), -1, axis=1) +
         np.roll(np.roll(V, -1, axis=0),  1, axis=1) +
@@ -36,31 +32,31 @@ def Xi(VIRUS):
 
 
 def setup_virus(giorni_totali, STORICO):
-    VIRUS_LAYERS  = np.zeros((giorni_totali, 401, 401))
+    VIRUS_LAYERS  = np.zeros((giorni_totali, 401, 401)) # VIRUS_LAYERS CONTIENE 1 E 0 giorno per giorno dei virus nella griglia
     N_LAYERS      = np.zeros((giorni_totali,401,401))  # N per cella per giorno
     
-    indici = np.random.choice(401*401, size=100, replace=False)
+    indici = np.random.choice(401*401, size=100)
     VIRUS_LAYERS[Dv].flat[indici] = 1
     
     POP_ZERO = np.zeros((401, 401), dtype=int)
 
     for i in range(Dv + 1, giorni_totali):
-        if i % Vs == 0:
-            indici_nuovi = np.random.choice(401*401, size=1, replace=False)
+        if i % Vs == 0:     # Ogni Vs giorni inserisco casualmente un virus al giorni i
+            indici_nuovi = np.random.choice(401*401, size=1)
             VIRUS_LAYERS[i].flat[indici_nuovi] = 1
 
-        eta           = i - np.arange(i)[:, np.newaxis, np.newaxis]
+        eta           = i - np.arange(i)[:, np.newaxis, np.newaxis]         # differenze tra giorno corrente e tutti i precedenti, cosi posso confrontare col passato, (time machine whooooooo)
         infettivi_mask = (eta > Ve) & (eta <= Ve + Vl)
         VIRUS_INFETTI  = (VIRUS_LAYERS[:i] * infettivi_mask).sum(axis=0)
         Xi_val         = Xi(VIRUS_INFETTI)
         
-        N                = Vp * Xi_val * STORICO[i]  # (401,401)
-        N_LAYERS[i]      = N                          # salva per cella
+        N                = Vp * Xi_val * STORICO[i] 
+        N_LAYERS[i]      = N                        
         VIRUS_LAYERS[i] += N
 
         totale = VIRUS_LAYERS[:i+1].sum(axis=0)
         eccesso_mask = totale > Vm
-        if eccesso_mask.any():
+        if eccesso_mask.any():  # Taglio le celle con più di Vm virus
             scala = np.where(eccesso_mask, Vm / totale, 1.0)
             VIRUS_LAYERS[:i+1] *= scala[np.newaxis, :, :]
 

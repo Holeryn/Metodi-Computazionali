@@ -19,14 +19,14 @@ S = np.array([[1, 0],
 def Ai(POPOLAZIONE):
     G = POPOLAZIONE[0]
     return (
-        np.roll(G, -1, axis=0) +   # i+1, j
-        np.roll(G, +1, axis=0) +   # i-1, j
-        np.roll(G, -1, axis=1) +   # i, j+1
-        np.roll(G, +1, axis=1) +   # i, j-1
-        np.roll(np.roll(G, -1, axis=0), -1, axis=1) +  # i+1, j+1
-        np.roll(np.roll(G, -1, axis=0), +1, axis=1) +  # i+1, j-1
-        np.roll(np.roll(G, +1, axis=0), -1, axis=1) +  # i-1, j+1
-        np.roll(np.roll(G, +1, axis=0), +1, axis=1)    # i-1, j-1
+        np.roll(G, -1, axis=0) +
+        np.roll(G, +1, axis=0) +
+        np.roll(G, -1, axis=1) +
+        np.roll(G, +1, axis=1) +
+        np.roll(np.roll(G, -1, axis=0), -1, axis=1) +
+        np.roll(np.roll(G, -1, axis=0), +1, axis=1) +
+        np.roll(np.roll(G, +1, axis=0), -1, axis=1) +
+        np.roll(np.roll(G, +1, axis=0), +1, axis=1)  
     )
 
     
@@ -97,8 +97,8 @@ def esperimento(giorni):
     STORICO[0] = POPOLAZIONE[0]
     for i in range(1,giorni):
         Gi = G(POPOLAZIONE,i)
-        P0 = Gi[:,:,0,0]*POPOLAZIONE[0] + Gi[:,:,0,1]*POPOLAZIONE[1]
-        P1 = Gi[:,:,1,0]*POPOLAZIONE[0] + Gi[:,:,1,1]*POPOLAZIONE[1]
+        P0 = Gi[:,:,0,0]*POPOLAZIONE[0] + Gi[:,:,0,1]*POPOLAZIONE[1] # primo elemento del prodotto riga * colonna
+        P1 = Gi[:,:,1,0]*POPOLAZIONE[0] + Gi[:,:,1,1]*POPOLAZIONE[1] # secondo //
     
         N = np.sqrt(P0**2 + P1**2)
         POPOLAZIONE[0] = P0/N
